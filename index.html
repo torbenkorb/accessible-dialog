@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html class="no-js" lang="de">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Dialog</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <style type="text/css">
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            .site {
+                max-width: 960px;
+                margin: 30px auto;
+                padding: 48px;
+                border: 1px solid rgba(0,0,0,0.2);
+            }
+
+
+
+            .dialog {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                background-color: rgba(0,0,0,0.5);
+                display: flex;
+                opacity: 0;
+                visibility: hidden;
+                transition: .2s;
+            }
+
+            .dialog.active {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .dialog__panel {
+                background-color: #fff;
+                margin: auto;
+                padding: 48px;
+                max-width: 90%;
+                max-height: 90%;
+                overflow-y: auto;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+                transition: transform .3s;
+                transform: translateY(-50px);
+            }
+
+            .active .dialog__panel {
+                transform: translateY(0);
+            }
+
+
+            .close-dialog {
+                position: absolute;
+                top: 30px;
+                right: 30px;
+                border-radius: 3px;
+            }
+
+
+
+        </style>
+    </head>
+    <body>
+
+       <div class="site">
+           <h1>Super Site</h1>
+           <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+           tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+           quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+           consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+           cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+           proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+           <button class="open-dialog" onclick="dialog.show()">Open Dialog</button>
+           <button class="open-dialog" onclick="dialog2.show()">Open Dialog #2</button>
+       </div>
+
+
+       <div class="dialog">
+           <div class="dialog__panel">
+                <button class="close-dialog" onclick="dialog.close()">&times;</button>
+               <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+               tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+               quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+               consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+               cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+               proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+               <div><p>Deep nested!!!</p></div>
+               <button>Click Me!</button>
+           </div>
+       </div>
+
+       <div class="dialog">
+           <div class="dialog__panel">
+                <button class="close-dialog" onclick="dialog2.close()">&times;</button>
+                <h2>Dialog #2</h2>
+               <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+               tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+               quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+               consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+               cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+               proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+               <div><p>Deep nested!!!</p></div>
+               <button>Click Me!</button>
+           </div>
+       </div>
+
+
+
+       <script type="text/javascript">
+
+        class Dialog {
+            constructor(node) {
+                this.DOM = node;
+                this.init();
+            }
+
+            log() {
+                console.log(this);
+            }
+
+            init() {
+                this.bodyEl = document.querySelector('body');
+                this.dialogPanelEl = this.DOM.querySelector('.dialog__panel');
+                this.keyEvents = this.trapKeys.bind(this);
+
+                this.DOM.addEventListener('click', (e) => {
+                    if(e.target === this.dialogPanelEl || !e.target.contains(this.dialogPanelEl)) {
+                        console.log('HIT!!!');
+                        return;
+                    }
+                    this.close();
+                });
+            }
+
+            show() {
+                this.focusedElementBefore = document.activeElement;
+                console.log(this.focusedElementBefore);
+
+
+                // Find all focusable children
+                var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
+                var focusableElements = this.DOM.querySelectorAll(focusableElementsString);
+                // Convert NodeList to Array
+                focusableElements = Array.prototype.slice.call(focusableElements);
+
+
+                this.firstTabStop = focusableElements[0];
+                this.lastTabStop = focusableElements[focusableElements.length - 1];
+
+
+                console.log(focusableElements, this.firstTabStop, this.lastTabStop);
+
+                this.DOM.classList.add('active');
+                this.bodyEl.style.overflowY = 'hidden';
+                document.addEventListener('keyup', this.keyEvents);
+
+                // Focus first child
+                this.firstTabStop.focus();
+            }
+
+            close() {
+                this.DOM.classList.remove('active');
+                this.bodyEl.style.overflowY = 'auto';
+                document.removeEventListener('keyup', this.keyEvents);
+            }
+
+            trapKeys(e) {
+                console.log(e);
+                // Check for TAB key press
+                if (e.keyCode === 9) {
+
+                  // SHIFT + TAB
+                  if (e.shiftKey) {
+                    if (document.activeElement === this.firstTabStop) {
+                      e.preventDefault();
+                      this.lastTabStop.focus();
+                    }
+
+                  // TAB
+                  } else {
+                    if (document.activeElement === this.lastTabStop) {
+                      e.preventDefault();
+                      this.firstTabStop.focus();
+                    }
+                  }
+                }
+
+                console.log(document.activeElement);
+
+                // ESCAPE
+                if (e.keyCode === 27) {
+                  this.close();
+                }
+            }
+        }
+
+
+        const dialogEl = document.querySelector('.dialog');
+        var dialog = new Dialog(dialogEl);
+        dialog.log();
+
+        var dialog2 = new Dialog(document.querySelectorAll('.dialog')[1]);
+        dialog2.log();
+
+       </script>
+
+    </body>
+</html>
