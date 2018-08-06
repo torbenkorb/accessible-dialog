@@ -59,7 +59,7 @@
             }
 
 
-            .dialog__close {
+            .dialog__close--icon {
                 position: absolute;
                 top: 30px;
                 right: 30px;
@@ -80,15 +80,15 @@
            consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
            cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
            proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-           <button class="open-dialog" data-dialog-id="test">Open Dialog</button>
-           <button class="open-dialog" data-dialog-id="test">Open Dialog</button>
-           <button class="open-dialog" data-dialog-id="test2">Open Dialog #2</button>
+           <button class="open-dialog" data-target="test">Open Dialog</button>
+           <button class="open-dialog" data-target="test">Open Dialog</button>
+           <button class="open-dialog" data-target="test2">Open Dialog #2</button>
        </div>
 
 
        <div id="test" class="dialog">
            <div class="dialog__panel">
-                <button class="dialog__close">&times;</button>
+                <button class="dialog__close--icon dialog__close">&times;</button>
                 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
                 tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
                 quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
@@ -102,7 +102,7 @@
 
        <div id="test2" class="dialog">
            <div class="dialog__panel">
-                <button class="dialog__close">&times;</button>
+                <button class="dialog__close--icon dialog__close">&times;</button>
                 <h2>Dialog #2</h2>
                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
@@ -113,6 +113,7 @@
                <div><p>Deep nested!!!</p></div>
                <button onclick="console.log('Second dialog, Button #1')">Click Me!</button>
                <button onclick="console.log('Second dialog, Button #2')">Click Me!</button>
+               <button class="dialog__close">Close me!</button>
            </div>
        </div>
 
@@ -227,12 +228,12 @@
         }
 
         function initTrigger() {
-            var triggers = document.querySelectorAll('[data-dialog-id]');
+            var triggers = document.querySelectorAll('[data-target]');
             var dialogs = createDialogMap();
             for(let i = 0; i < triggers.length; i++) {
                 var trigger = triggers[i];
                 trigger.addEventListener('click', (e) => {
-                    var id = e.target.dataset.dialogId;
+                    var id = e.target.dataset.target;
                     dialogs[id].show()
                 });
             }
