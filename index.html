@@ -51,15 +51,15 @@
                 overflow-y: auto;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.12);
                 transition: transform .3s;
-                transform: translateY(-50px);
+                transform: translate3d(0, -50px, 0);
             }
 
             .active .dialog__panel {
-                transform: translateY(0);
+                transform: translate3d(0, 0, 0);
             }
 
 
-            .close-dialog {
+            .dialog__close {
                 position: absolute;
                 top: 30px;
                 right: 30px;
@@ -80,28 +80,29 @@
            consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
            cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
            proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-           <button class="open-dialog" onclick="dialog.show()">Open Dialog</button>
-           <button class="open-dialog" onclick="dialog2.show()">Open Dialog #2</button>
+           <button class="open-dialog" data-dialog-id="test">Open Dialog</button>
+           <button class="open-dialog" data-dialog-id="test">Open Dialog</button>
+           <button class="open-dialog" data-dialog-id="test2">Open Dialog #2</button>
        </div>
 
 
-       <div class="dialog">
+       <div id="test" class="dialog">
            <div class="dialog__panel">
-                <button class="close-dialog" onclick="dialog.close()">&times;</button>
-               <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-               tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-               quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-               consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-               cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-               proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-               <div><p>Deep nested!!!</p></div>
-               <button onclick="console.log('First dialog, Button #1')">Click Me!</button>
+                <button class="dialog__close">&times;</button>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+                consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+                cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+                proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                <div><p>Deep nested!!!</p></div>
+                <button onclick="console.log('First dialog, Button #1')">Click Me!</button>
            </div>
        </div>
 
-       <div class="dialog">
+       <div id="test2" class="dialog">
            <div class="dialog__panel">
-                <button class="close-dialog" onclick="dialog2.close()">&times;</button>
+                <button class="dialog__close">&times;</button>
                 <h2>Dialog #2</h2>
                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
@@ -125,21 +126,27 @@
                 this.init();
             }
 
-            log() {
-                console.log(this);
-            }
-
             init() {
                 const dialogPanelEl = this.DOM.querySelector('.dialog__panel');
-                this.keyEvents = this.keyTrap.bind(this);
+                this.keyTrap = this.keyTrap.bind(this);
+                this.focusFirstElement = this.focusFirstElement.bind(this);
 
-                // Listen for clicks on the dialog background and filter it wasn't clicked inside the dialog
+                // Handle click events on the dialog
                 this.DOM.addEventListener('click', (e) => {
+                    // If we click inside the dialog content panel
                     if(e.target === dialogPanelEl || !e.target.contains(dialogPanelEl)) {
+                        // If the close button is clicked, close the dialog
+                        if(e.target.classList.contains('dialog__close')) {
+                            this.close();
+                        }
+                        // Else do nothing
                         return;
                     }
+                    // If we click outside the dialog panel we close the dialog
                     this.close();
                 });
+
+                //closeButton.addEventListener('click', this.close.bind(this));
             }
 
             show() {
@@ -147,35 +154,34 @@
                 this.focusedElementBefore = document.activeElement;
 
                 // Listen for and trap the keyboard
-                this.DOM.addEventListener('keydown', this.keyEvents);
+                this.DOM.addEventListener('keydown', this.keyTrap);
+
 
                 // Find all focusable children
                 var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
                 var focusableElements = this.DOM.querySelectorAll(focusableElementsString);
                 focusableElements = Array.prototype.slice.call(focusableElements);
 
+                // Set the first and last focusable element in a dialog
                 this.firstTabStop = focusableElements[0];
                 this.lastTabStop = focusableElements[focusableElements.length - 1];
 
-                // Close dialog and prevent scrolling on the body
+                // Show dialog and prevent scrolling on the body
                 this.DOM.classList.add('active');
                 document.querySelector('body').style.overflowY = 'hidden';
 
-                // TODO: Refactor to let the animation be completed (Callback?? Promise?? TransitionEnd??) before focus is set
-                var self = this;
-                setTimeout(function() {
-                  // Focus first child
-                  self.firstTabStop.focus();
-                }, 300);
-
+                this.DOM.addEventListener('transitionend', this.focusFirstElement);
             }
 
             close() {
                 // Remove the listener when dialog is closed
-                this.DOM.removeEventListener('keydown', this.keyEvents);
+                this.DOM.removeEventListener('keydown', this.keyTrap);
+                this.DOM.removeEventListener('transitionend', this.focusFirstElement);
+
                 // Close the dialog and let the body scroll again
                 this.DOM.classList.remove('active');
                 document.querySelector('body').style.overflowY = 'auto';
+
                 // Focus the last focused element
                 this.focusedElementBefore.focus();
             }
@@ -202,13 +208,38 @@
                     this.close();
                 }
             }
+
+            focusFirstElement() {
+                this.firstTabStop.focus();
+            }
         }
 
 
-        const dialogEl = document.querySelector('.dialog');
-        var dialog = new Dialog(dialogEl);
 
-        var dialog2 = new Dialog(document.querySelectorAll('.dialog')[1]);
+        function createDialogMap() {
+            let dialogs = {};
+            var dialogList = document.querySelectorAll('.dialog');
+            for(let i = 0; i < dialogList.length; i++) {
+                dialogs[dialogList[i].id] = new Dialog(dialogList[i]);
+            }
+            console.log(dialogs);
+            return dialogs;
+        }
+
+        function initTrigger() {
+            var triggers = document.querySelectorAll('[data-dialog-id]');
+            var dialogs = createDialogMap();
+            for(let i = 0; i < triggers.length; i++) {
+                var trigger = triggers[i];
+                trigger.addEventListener('click', (e) => {
+                    var id = e.target.dataset.dialogId;
+                    dialogs[id].show()
+                });
+            }
+        }
+
+        initTrigger();
+
 
        </script>
 
