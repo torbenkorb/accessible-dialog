@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html class="no-js" lang="de">
     <head>
@@ -24,8 +23,6 @@
                 padding: 48px;
                 border: 1px solid rgba(0,0,0,0.2);
             }
-
-
 
             .dialog {
                 position: fixed;
@@ -98,7 +95,7 @@
                cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
                proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
                <div><p>Deep nested!!!</p></div>
-               <button>Click Me!</button>
+               <button onclick="console.log('First dialog, Button #1')">Click Me!</button>
            </div>
        </div>
 
@@ -113,7 +110,8 @@
                cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
                proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
                <div><p>Deep nested!!!</p></div>
-               <button>Click Me!</button>
+               <button onclick="console.log('Second dialog, Button #1')">Click Me!</button>
+               <button onclick="console.log('Second dialog, Button #2')">Click Me!</button>
            </div>
        </div>
 
@@ -132,13 +130,12 @@
             }
 
             init() {
-                this.bodyEl = document.querySelector('body');
-                this.dialogPanelEl = this.DOM.querySelector('.dialog__panel');
-                this.keyEvents = this.trapKeys.bind(this);
+                const dialogPanelEl = this.DOM.querySelector('.dialog__panel');
+                this.keyEvents = this.keyTrap.bind(this);
 
+                // Listen for clicks on the dialog background and filter it wasn't clicked inside the dialog
                 this.DOM.addEventListener('click', (e) => {
-                    if(e.target === this.dialogPanelEl || !e.target.contains(this.dialogPanelEl)) {
-                        console.log('HIT!!!');
+                    if(e.target === dialogPanelEl || !e.target.contains(dialogPanelEl)) {
                         return;
                     }
                     this.close();
@@ -146,63 +143,63 @@
             }
 
             show() {
+                // Store the current focused element before opening the dialog
                 this.focusedElementBefore = document.activeElement;
-                console.log(this.focusedElementBefore);
 
+                // Listen for and trap the keyboard
+                this.DOM.addEventListener('keydown', this.keyEvents);
 
                 // Find all focusable children
                 var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
                 var focusableElements = this.DOM.querySelectorAll(focusableElementsString);
-                // Convert NodeList to Array
                 focusableElements = Array.prototype.slice.call(focusableElements);
-
 
                 this.firstTabStop = focusableElements[0];
                 this.lastTabStop = focusableElements[focusableElements.length - 1];
 
-
-                console.log(focusableElements, this.firstTabStop, this.lastTabStop);
-
+                // Close dialog and prevent scrolling on the body
                 this.DOM.classList.add('active');
-                this.bodyEl.style.overflowY = 'hidden';
-                document.addEventListener('keyup', this.keyEvents);
+                document.querySelector('body').style.overflowY = 'hidden';
 
-                // Focus first child
-                this.firstTabStop.focus();
+                // TODO: Refactor to let the animation be completed (Callback?? Promise?? TransitionEnd??) before focus is set
+                var self = this;
+                setTimeout(function() {
+                  // Focus first child
+                  self.firstTabStop.focus();
+                }, 300);
+
             }
 
             close() {
+                // Remove the listener when dialog is closed
+                this.DOM.removeEventListener('keydown', this.keyEvents);
+                // Close the dialog and let the body scroll again
                 this.DOM.classList.remove('active');
-                this.bodyEl.style.overflowY = 'auto';
-                document.removeEventListener('keyup', this.keyEvents);
+                document.querySelector('body').style.overflowY = 'auto';
+                // Focus the last focused element
+                this.focusedElementBefore.focus();
             }
 
-            trapKeys(e) {
-                console.log(e);
+            keyTrap(e) {
                 // Check for TAB key press
                 if (e.keyCode === 9) {
-
-                  // SHIFT + TAB
-                  if (e.shiftKey) {
-                    if (document.activeElement === this.firstTabStop) {
-                      e.preventDefault();
-                      this.lastTabStop.focus();
+                    // SHIFT + TAB
+                    if (e.shiftKey) {
+                        if (document.activeElement === this.firstTabStop) {
+                            e.preventDefault();
+                            this.lastTabStop.focus();
+                        }
+                    // TAB
+                    } else {
+                        if (document.activeElement === this.lastTabStop) {
+                            e.preventDefault();
+                            this.firstTabStop.focus();
+                        }
                     }
-
-                  // TAB
-                  } else {
-                    if (document.activeElement === this.lastTabStop) {
-                      e.preventDefault();
-                      this.firstTabStop.focus();
-                    }
-                  }
                 }
-
-                console.log(document.activeElement);
-
                 // ESCAPE
                 if (e.keyCode === 27) {
-                  this.close();
+                    this.close();
                 }
             }
         }
@@ -210,10 +207,8 @@
 
         const dialogEl = document.querySelector('.dialog');
         var dialog = new Dialog(dialogEl);
-        dialog.log();
 
         var dialog2 = new Dialog(document.querySelectorAll('.dialog')[1]);
-        dialog2.log();
 
        </script>
 
