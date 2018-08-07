@@ -149,8 +149,6 @@
                         // If we click outside the dialog panel we close the dialog
                         this.close();
                     });
-
-                    //closeButton.addEventListener('click', this.close.bind(this));
                 }
 
                 show() {
@@ -162,8 +160,8 @@
 
 
                     // Find all focusable children
-                    var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
-                    var focusableElements = this.DOM.querySelectorAll(focusableElementsString);
+                    const focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
+                    let focusableElements = this.DOM.querySelectorAll(focusableElementsString);
                     focusableElements = Array.prototype.slice.call(focusableElements);
 
                     // Set the first and last focusable element in a dialog
@@ -174,6 +172,7 @@
                     this.DOM.classList.add('active');
                     document.querySelector('body').style.overflowY = 'hidden';
 
+                    // Set focus to first element in the dialog once the transition ended
                     this.DOM.addEventListener('transitionend', this.focusFirstElement);
                 }
 
@@ -218,25 +217,22 @@
                 }
             }
 
-
-
             function createDialogMap() {
                 let dialogs = {};
-                var dialogList = document.querySelectorAll('.dialog');
+                const dialogList = document.querySelectorAll('.dialog');
                 for(let i = 0; i < dialogList.length; i++) {
                     dialogs[dialogList[i].id] = new Dialog(dialogList[i]);
                 }
-                console.log(dialogs);
                 return dialogs;
             }
 
             function initAllDialogs() {
-                var triggers = document.querySelectorAll('.dialog__trigger[data-target]');
-                var dialogs = createDialogMap();
+                const triggers = document.querySelectorAll('.dialog__trigger[data-target]');
+                const dialogs = createDialogMap();
                 for(let i = 0; i < triggers.length; i++) {
-                    var trigger = triggers[i];
+                    const trigger = triggers[i];
                     trigger.addEventListener('click', (e) => {
-                        var id = e.target.dataset.target;
+                        const id = e.target.dataset.target;
                         dialogs[id].show()
                     });
                 }
