@@ -80,9 +80,9 @@
            consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
            cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
            proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-           <button class="open-dialog" data-target="test">Open Dialog</button>
-           <button class="open-dialog" data-target="test">Open Dialog</button>
-           <button class="open-dialog" data-target="test2">Open Dialog #2</button>
+           <button class="dialog__trigger" data-target="test">Open Dialog</button>
+           <button class="dialog__trigger" data-target="test">Open Dialog</button>
+           <button class="dialog__trigger" data-target="test2">Open Dialog #2</button>
        </div>
 
 
@@ -121,125 +121,130 @@
 
        <script type="text/javascript">
 
-        class Dialog {
-            constructor(node) {
-                this.DOM = node;
-                this.init();
-            }
 
-            init() {
-                const dialogPanelEl = this.DOM.querySelector('.dialog__panel');
-                this.keyTrap = this.keyTrap.bind(this);
-                this.focusFirstElement = this.focusFirstElement.bind(this);
+        (function() {
 
-                // Handle click events on the dialog
-                this.DOM.addEventListener('click', (e) => {
-                    // If we click inside the dialog content panel
-                    if(e.target === dialogPanelEl || !e.target.contains(dialogPanelEl)) {
-                        // If the close button is clicked, close the dialog
-                        if(e.target.classList.contains('dialog__close')) {
-                            this.close();
+            class Dialog {
+                constructor(node) {
+                    this.DOM = node;
+                    this.init();
+                }
+
+                init() {
+                    const dialogPanelEl = this.DOM.querySelector('.dialog__panel');
+                    this.keyTrap = this.keyTrap.bind(this);
+                    this.focusFirstElement = this.focusFirstElement.bind(this);
+
+                    // Handle click events on the dialog
+                    this.DOM.addEventListener('click', (e) => {
+                        // If we click inside the dialog content panel
+                        if(e.target === dialogPanelEl || !e.target.contains(dialogPanelEl)) {
+                            // If the close button is clicked, close the dialog
+                            if(e.target.classList.contains('dialog__close')) {
+                                this.close();
+                            }
+                            // Else do nothing
+                            return;
                         }
-                        // Else do nothing
-                        return;
+                        // If we click outside the dialog panel we close the dialog
+                        this.close();
+                    });
+
+                    //closeButton.addEventListener('click', this.close.bind(this));
+                }
+
+                show() {
+                    // Store the current focused element before opening the dialog
+                    this.focusedElementBefore = document.activeElement;
+
+                    // Listen for and trap the keyboard
+                    this.DOM.addEventListener('keydown', this.keyTrap);
+
+
+                    // Find all focusable children
+                    var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
+                    var focusableElements = this.DOM.querySelectorAll(focusableElementsString);
+                    focusableElements = Array.prototype.slice.call(focusableElements);
+
+                    // Set the first and last focusable element in a dialog
+                    this.firstTabStop = focusableElements[0];
+                    this.lastTabStop = focusableElements[focusableElements.length - 1];
+
+                    // Show dialog and prevent scrolling on the body
+                    this.DOM.classList.add('active');
+                    document.querySelector('body').style.overflowY = 'hidden';
+
+                    this.DOM.addEventListener('transitionend', this.focusFirstElement);
+                }
+
+                close() {
+                    // Remove the listener when dialog is closed
+                    this.DOM.removeEventListener('keydown', this.keyTrap);
+                    this.DOM.removeEventListener('transitionend', this.focusFirstElement);
+
+                    // Close the dialog and let the body scroll again
+                    this.DOM.classList.remove('active');
+                    document.querySelector('body').style.overflowY = 'auto';
+
+                    // Focus the last focused element
+                    this.focusedElementBefore.focus();
+                }
+
+                keyTrap(e) {
+                    // Check for TAB key press
+                    if (e.keyCode === 9) {
+                        // SHIFT + TAB
+                        if (e.shiftKey) {
+                            if (document.activeElement === this.firstTabStop) {
+                                e.preventDefault();
+                                this.lastTabStop.focus();
+                            }
+                        // TAB
+                        } else {
+                            if (document.activeElement === this.lastTabStop) {
+                                e.preventDefault();
+                                this.firstTabStop.focus();
+                            }
+                        }
                     }
-                    // If we click outside the dialog panel we close the dialog
-                    this.close();
-                });
-
-                //closeButton.addEventListener('click', this.close.bind(this));
-            }
-
-            show() {
-                // Store the current focused element before opening the dialog
-                this.focusedElementBefore = document.activeElement;
-
-                // Listen for and trap the keyboard
-                this.DOM.addEventListener('keydown', this.keyTrap);
-
-
-                // Find all focusable children
-                var focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
-                var focusableElements = this.DOM.querySelectorAll(focusableElementsString);
-                focusableElements = Array.prototype.slice.call(focusableElements);
-
-                // Set the first and last focusable element in a dialog
-                this.firstTabStop = focusableElements[0];
-                this.lastTabStop = focusableElements[focusableElements.length - 1];
-
-                // Show dialog and prevent scrolling on the body
-                this.DOM.classList.add('active');
-                document.querySelector('body').style.overflowY = 'hidden';
-
-                this.DOM.addEventListener('transitionend', this.focusFirstElement);
-            }
-
-            close() {
-                // Remove the listener when dialog is closed
-                this.DOM.removeEventListener('keydown', this.keyTrap);
-                this.DOM.removeEventListener('transitionend', this.focusFirstElement);
-
-                // Close the dialog and let the body scroll again
-                this.DOM.classList.remove('active');
-                document.querySelector('body').style.overflowY = 'auto';
-
-                // Focus the last focused element
-                this.focusedElementBefore.focus();
-            }
-
-            keyTrap(e) {
-                // Check for TAB key press
-                if (e.keyCode === 9) {
-                    // SHIFT + TAB
-                    if (e.shiftKey) {
-                        if (document.activeElement === this.firstTabStop) {
-                            e.preventDefault();
-                            this.lastTabStop.focus();
-                        }
-                    // TAB
-                    } else {
-                        if (document.activeElement === this.lastTabStop) {
-                            e.preventDefault();
-                            this.firstTabStop.focus();
-                        }
+                    // ESCAPE
+                    if (e.keyCode === 27) {
+                        this.close();
                     }
                 }
-                // ESCAPE
-                if (e.keyCode === 27) {
-                    this.close();
+
+                focusFirstElement() {
+                    this.firstTabStop.focus();
                 }
             }
 
-            focusFirstElement() {
-                this.firstTabStop.focus();
+
+
+            function createDialogMap() {
+                let dialogs = {};
+                var dialogList = document.querySelectorAll('.dialog');
+                for(let i = 0; i < dialogList.length; i++) {
+                    dialogs[dialogList[i].id] = new Dialog(dialogList[i]);
+                }
+                console.log(dialogs);
+                return dialogs;
             }
-        }
 
-
-
-        function createDialogMap() {
-            let dialogs = {};
-            var dialogList = document.querySelectorAll('.dialog');
-            for(let i = 0; i < dialogList.length; i++) {
-                dialogs[dialogList[i].id] = new Dialog(dialogList[i]);
+            function initAllDialogs() {
+                var triggers = document.querySelectorAll('.dialog__trigger[data-target]');
+                var dialogs = createDialogMap();
+                for(let i = 0; i < triggers.length; i++) {
+                    var trigger = triggers[i];
+                    trigger.addEventListener('click', (e) => {
+                        var id = e.target.dataset.target;
+                        dialogs[id].show()
+                    });
+                }
             }
-            console.log(dialogs);
-            return dialogs;
-        }
 
-        function initTrigger() {
-            var triggers = document.querySelectorAll('[data-target]');
-            var dialogs = createDialogMap();
-            for(let i = 0; i < triggers.length; i++) {
-                var trigger = triggers[i];
-                trigger.addEventListener('click', (e) => {
-                    var id = e.target.dataset.target;
-                    dialogs[id].show()
-                });
-            }
-        }
+            initAllDialogs();
 
-        initTrigger();
+        })();
 
 
        </script>
