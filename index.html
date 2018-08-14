@@ -82,7 +82,7 @@
            proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
            <button class="dialog__trigger" data-target="test">Open Dialog</button>
            <button class="dialog__trigger" data-target="test">Open Dialog</button>
-           <button class="dialog__trigger" data-target="test2">Open Dialog #2</button>
+           <button class="dialog__trigger" data-target="test-2">Open Dialog #2</button>
        </div>
 
 
@@ -100,11 +100,11 @@
            </div>
        </div>
 
-       <div id="test2" class="dialog">
+       <div id="test-2" class="dialog">
            <div class="dialog__panel">
                 <button class="dialog__close--icon dialog__close">&times;</button>
                 <h2>Dialog #2</h2>
-               <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+               <p style="min-height: 200vh">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
                quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
                consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
@@ -169,6 +169,7 @@
                     this.lastTabStop = focusableElements[focusableElements.length - 1];
 
                     // Show dialog and prevent scrolling on the body
+                    this.DOM.querySelector('.dialog__panel').scrollTop = 0;
                     this.DOM.classList.add('active');
                     document.querySelector('body').style.overflowY = 'hidden';
 
@@ -183,6 +184,7 @@
 
                     // Close the dialog and let the body scroll again
                     this.DOM.classList.remove('active');
+
                     document.querySelector('body').style.overflowY = 'auto';
 
                     // Focus the last focused element
@@ -229,6 +231,7 @@
             function initAllDialogs() {
                 const triggers = document.querySelectorAll('.dialog__trigger[data-target]');
                 const dialogs = createDialogMap();
+                console.log(dialogs);
                 for(let i = 0; i < triggers.length; i++) {
                     const trigger = triggers[i];
                     trigger.addEventListener('click', (e) => {
